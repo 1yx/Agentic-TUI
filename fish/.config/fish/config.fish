@@ -45,6 +45,9 @@ end
 # mysql-client
 fish_add_path /opt/homebrew/opt/mysql-client/bin
 
+# postgresql@17
+fish_add_path /opt/homebrew/opt/postgresql@17/bin
+
 # bun
 set -gx BUN_INSTALL "$HOME/.bun"
 fish_add_path "$BUN_INSTALL/bin"
@@ -115,3 +118,10 @@ if status --is-interactive
         end
     end
 end
+
+# pnpm
+set -gx PNPM_HOME "/Users/dontaire/Library/pnpm"
+if not string match -q -- "$PNPM_HOME/bin" $PATH
+  set -gx PATH "$PNPM_HOME/bin" $PATH
+end
+# pnpm end

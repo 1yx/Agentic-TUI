@@ -10,5 +10,8 @@ export PATH="/opt/homebrew/opt/gnu-indent/libexec/gnubin:$PATH"
 # GNU getopt (keg-only)
 export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"
 
+# PostgreSQL 17
+export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+
 # Obsidian
 export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
