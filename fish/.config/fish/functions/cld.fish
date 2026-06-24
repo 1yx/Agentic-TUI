@@ -32,11 +32,11 @@ function cld --argument provider
         case glm
             set -a env_args ANTHROPIC_BASE_URL=$CLD_GLM_URL
             set -a env_args ANTHROPIC_AUTH_TOKEN=$CLD_GLM_TOKEN
-            set -a env_args ANTHROPIC_DEFAULT_HAIKU_MODEL=glm-5.1
-            set -a env_args ANTHROPIC_DEFAULT_SONNET_MODEL=glm-5.1
-            set -a env_args ANTHROPIC_DEFAULT_OPUS_MODEL=glm-5.1
-        # Kimi uses ANTHROPIC_API_KEY per official docs:
-        # https://www.kimi.com/code/docs/third-party-tools/other-coding-agents.html
+            set -a env_args ANTHROPIC_DEFAULT_HAIKU_MODEL=glm-5.2
+            set -a env_args ANTHROPIC_DEFAULT_SONNET_MODEL=glm-5.2
+            set -a env_args ANTHROPIC_DEFAULT_OPUS_MODEL=glm-5.2
+            # Kimi uses ANTHROPIC_API_KEY per official docs:
+            # https://www.kimi.com/code/docs/third-party-tools/other-coding-agents.html
         case kimi
             set -a env_args ANTHROPIC_BASE_URL=$CLD_KIMI_URL
             set -a env_args ANTHROPIC_API_KEY=$CLD_KIMI_KEY
