@@ -26,6 +26,11 @@
 >
 > Homebrew packages: `fd` `ripgrep` `jq` `coreutils` `gnu-sed` `gawk` `findutils` `gnu-tar` `grep` `gnu-which` `gnu-indent` `gnu-getopt`
 
+## Editing Rules
+
+- Use 2 spaces for indentation, never tabs (`^I`)
+- Use the Edit tool to modify code, never `python3` one-liners. If a file has tab indentation, convert tabs to spaces first, then use Edit.
+
 ## Date and Time
 
 - Run `date` to get the current date/time; do not rely on internal knowledge for temporal facts
