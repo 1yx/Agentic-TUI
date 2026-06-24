@@ -142,7 +142,7 @@ Normal mode: editing
 | `Ctrl+a` / `Ctrl+x` | increment / decrement number |
 | `Q` / `q` | record / replay macro |
 
-Normal mode: selections and multicursor
+Normal mode: selection manipulation
 
 | Key | Meaning |
 |---|---|
@@ -153,14 +153,41 @@ Normal mode: selections and multicursor
 | `;` | collapse selection to cursor |
 | `Alt+;` | flip cursor and anchor |
 | `Alt+:` | ensure selections are forward |
-| `,` | keep only primary selection |
-| `Alt+,` | remove primary selection |
-| `C` / `Alt+C` | copy selection below / above |
-| `(` / `)` | rotate main selection |
-| `Alt+(` / `Alt+)` | rotate selection contents |
 | `J` / `Alt+J` | join lines / join and select inserted space |
-| `K` / `Alt+K` | keep / remove selections by regex |
-| `Ctrl+c` | toggle comments |
+| `_` | trim whitespace from selection |
+
+Normal mode: multiple selections
+
+Multiple selections are core to Helix: hold any number of cursors/selections at once, and nearly every command (edit, indent, comment, `y`, `Space y`) applies to all of them in parallel.
+
+Create multiple selections:
+
+| Key | Meaning |
+|---|---|
+| `s` | select all regex matches inside selection |
+| `S` | split selection into sub-selections on regex |
+| `Alt+s` | split selection on newlines (one selection per line) |
+| `C` / `Alt+C` | copy selection onto next / previous line (add cursor) |
+
+> Search builds them too: `/` then `v` enters select mode, after which `n` / `N` accumulate each match as a new selection instead of replacing. Tree-sitter siblings (`Alt+a` / `Alt+n` / `Alt+p`) also create multiple selections — see Tree-sitter below.
+
+Manage multiple selections:
+
+| Key | Meaning |
+|---|---|
+| `,` / `Alt+,` | keep only primary / remove primary selection |
+| `Alt+-` / `Alt+_` | merge selections / merge consecutive selections |
+| `(` / `)` | rotate main selection backward / forward |
+| `Alt+(` / `Alt+)` | rotate selection contents backward / forward |
+| `&` | align selections in columns |
+| `K` / `Alt+K` | keep / remove selections matching regex |
+| `Ctrl+c` | toggle comments (all selections) |
+
+Typical workflows:
+
+- rename all occurrences in a line: `x` select line → `s` type word → `c` change → `Esc`
+- column edit: press `C` repeatedly to add cursors downward, then `i` to insert
+- copy many selections to clipboard: select them, then `Space y` joins all with newlines into the system clipboard
 
 Normal mode: search and commands
 
@@ -299,8 +326,10 @@ Repo custom:
 
 | Key | Meaning |
 |---|---|
-| `e` | open file in Helix |
-| `E` | open Helix in current dir |
+| `e` | open file (mdfried for md, Helix otherwise) |
+| `E` | open file in Helix |
+| `J / K` | scroll preview up / down 1 line |
+| `T` | maximize / restore preview pane |
 
 Defaults worth remembering:
 
@@ -317,6 +346,29 @@ Defaults worth remembering:
 | `r` | rename |
 | `c` | create |
 | `d` | delete |
+
+Sort (`[,]` prefix):
+
+| Key | Meaning |
+|---|---|
+| `[,a` / `[,A` | sort alphabetical / reverse |
+| `[,b` / `[,B` | sort by birth time / reverse |
+| `[,d` / `[,D` | sort by modified time / reverse |
+| `[,e` / `[,E` | sort by extension / reverse |
+| `[,n` / `[,N` | sort natural / reverse |
+| `[,s` / `[,S` | sort by size / reverse |
+| `[,r` | reverse sort order |
+
+Linemode (`m` prefix):
+
+| Key | Meaning |
+|---|---|
+| `mn` | linemode: none |
+| `ms` | linemode: size |
+| `mp` | linemode: permissions |
+| `mb` | linemode: birth time |
+| `mm` | linemode: modified time |
+| `mo` | linemode: owner |
 
 ## LazyGit
 
