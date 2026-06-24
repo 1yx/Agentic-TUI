@@ -27,7 +27,8 @@
     ],
     "deny": [
       "Bash(git push:*)",
-      "Bash(npm:*)"
+      "Bash(npm:*)",
+      "Bash(sed:*)"
     ]
   },
   "hooks": {
@@ -55,8 +56,10 @@
     ]
   },
   "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
+  "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized"
 }
