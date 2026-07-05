@@ -37,7 +37,12 @@ When an AI Agent is invoked to set up this environment, it MUST execute the foll
 ```bash
 # Core TUI tools
 brew install stow helix yazi lazygit fish starship fd
+
+# GNU toolchain (macOS built-ins are BSD; use g-prefixed binaries: gsed, gawk, gdate,
+# ggrep, gfind, gxargs, gtar, gwhich, gindent, gtimeout, getopt, etc.)
+brew install coreutils gnu-sed gawk findutils gnu-tar grep gnu-which gnu-indent gnu-getopt
 ```
+The `g`-prefixed binaries land in `/opt/homebrew/bin` (already on `PATH` via `config.fish`), so they're available to fish and to any process launched from it (including pi's bash tool, which inherits the exported `PATH`). Bare names (`sed`, `awk`, `date`, ...) intentionally stay the BSD system defaults — no `gnubin` PATH override.
 
 #### Switch to Fish and fix PATH
 If the pre-flight check (§1) determined the current shell is **not** fish, the agent **MUST**:

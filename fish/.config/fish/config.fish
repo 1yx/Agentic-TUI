@@ -61,16 +61,8 @@ function e
     TERM=xterm-256color emacsclient -t $argv
 end
 
-# coreutils (GNU timeout)
-fish_add_path /opt/homebrew/opt/coreutils/libexec/gnubin
-abbr -a timeout gtimeout
-
-# GNU which/indent (g-prefixed → default names via gnubin)
-fish_add_path /opt/homebrew/opt/gnu-which/libexec/gnubin
-fish_add_path /opt/homebrew/opt/gnu-indent/libexec/gnubin
-
-# GNU getopt (keg-only, needs explicit PATH)
-fish_add_path /opt/homebrew/opt/gnu-getopt/bin
+# GNU tools used via g-prefixed binaries (gsed, gawk, gdate, ...) in /opt/homebrew/bin.
+# Bare names intentionally stay the BSD system defaults — no gnubin PATH override.
 
 # Obsidian
 fish_add_path /Applications/Obsidian.app/Contents/MacOS
