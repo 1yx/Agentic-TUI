@@ -2,6 +2,9 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 palette = 'one_dark'
 
+[swift]
+disabled = true
+
 [directory]
 style = 'bold cyan'
 format = '[$path]($style) '
