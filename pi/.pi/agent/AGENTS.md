@@ -38,6 +38,12 @@
 - Use 2 spaces for indentation, never tabs (`^I`)
 - Use the Edit tool to modify code, never `python3` one-liners. If a file has tab indentation, convert tabs to spaces first, then use Edit.
 
+## Workspace Layout
+
+- All code lives under `~/Repositories`. Treat it as the single root for repositories and projects.
+- Throwaway / scratch / experimental repos go in `~/Repositories/tmp` (create it if missing). Do **not** invent other roots.
+- Never create `~/work` or similar alternative roots — if a path outside `~/Repositories` seems needed, ask first.
+
 ## Date and Time
 
 - Run `date` to get the current date/time; do not rely on internal knowledge for temporal facts
