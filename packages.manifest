@@ -20,3 +20,4 @@ uv	uv	any	.config/uv
 worktrunk	wt	any	.config/worktrunk
 yazi	yazi	any	.config/yazi
 zsh	zsh	any	.zprofile
+pi	pi	any	.pi/agent/keybindings.json

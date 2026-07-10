@@ -61,7 +61,7 @@ has_bin() { command -v "$1" >/dev/null 2>&1; }
 
 # Top-level dirs that are NOT stow packages (project scaffolding/data). Used only
 # by --check to avoid false "orphan" reports.
-NON_STOW_DIRS=(.git .backup openspec pi .pi node_modules .trash)
+NON_STOW_DIRS=(.git .backup openspec .pi node_modules .trash)
 is_non_stow() { local x; for x in "${NON_STOW_DIRS[@]}"; do [ "$1" = "$x" ] && return 0; done; return 1; }
 
 # --- read manifest: build selection + a space-joined manifest package set ---
