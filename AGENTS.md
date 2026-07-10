@@ -18,6 +18,9 @@ This repo manages config for:
 - `claude`
 - `gemini`
 - `uv`
+- `tmux`
+- `zsh`
+- `pi`
 
 It uses GNU Stow. Each top-level directory is one stow package.
 
@@ -36,7 +39,7 @@ When an AI Agent is invoked to set up this environment, it MUST execute the foll
 #### Install the required toolchain using Homebrew:
 ```bash
 # Core TUI tools
-brew install stow helix yazi lazygit fish starship fd
+brew install stow helix yazi lazygit fish starship fd uv
 
 # GNU toolchain (macOS built-ins are BSD; use g-prefixed binaries: gsed, gawk, gdate,
 # ggrep, gfind, gxargs, gtar, gwhich, gindent, gtimeout, getopt, etc.)
@@ -119,6 +122,7 @@ The agent MUST set the user's chosen `worktree-path` in the repo's `worktrunk/.c
   ~/.claude
   ~/Library/Application Support/Claude/claude_desktop_config.json
   ~/.gemini
+  ~/.pi/agent/keybindings.json
   ```
   For each existing path, apply the following logic:
   1. **`.backup/` exists and is up-to-date**: The user already ran `backup_configs.sh`. Safe to delete the original and proceed.
@@ -315,6 +319,9 @@ bash -n claude/.claude/hooks/cmux-notify.sh
 # uv（confirm available and verify config loads）
 uv --version
 cat uv/.config/uv/uv.toml
+
+# pi（agent keybindings）
+jq empty pi/.pi/agent/keybindings.json
 ```
 
 Notes:

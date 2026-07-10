@@ -320,6 +320,44 @@ Prompt
 | `Ctrl+B` | left |
 | `Ctrl+K` | delete to line end |
 
+## Pi Agent
+
+Repo custom:
+
+| Key | Meaning |
+|---|---|
+| `Ctrl+P` | editor cursor up (also keeps `Up`) |
+| `Ctrl+N` | editor cursor down (also keeps `Down`) |
+| `Ctrl+P` model cycle | disabled |
+| `Shift+Ctrl+P` model cycle | disabled |
+
+Defaults worth remembering:
+
+| Key | Meaning |
+|---|---|
+| `Esc` | cancel / abort |
+| `Ctrl+C` | clear editor, copy selection, or cancel selector by context |
+| `Ctrl+D` | exit when editor is empty |
+| `Shift+Tab` | cycle thinking level |
+| `Ctrl+L` | open model selector |
+| `Ctrl+O` | toggle tool output |
+| `Ctrl+T` | toggle thinking blocks |
+| `Ctrl+G` | open external editor |
+| `Alt+Enter` | queue follow-up message |
+| `Alt+Up` | restore queued messages |
+| `Ctrl+V` | paste image from clipboard |
+| `Enter` | submit input / confirm selection |
+| `Shift+Enter` / `Ctrl+J` | insert newline |
+| `Tab` | tab / autocomplete |
+| `Ctrl+A` / `Ctrl+E` | line start / end |
+| `Ctrl+B` / `Ctrl+F` | left / right |
+| `Alt+B` / `Alt+F` | word left / right |
+| `Ctrl+W` | delete previous word |
+| `Alt+D` | delete next word |
+| `Ctrl+U` / `Ctrl+K` | delete to line start / end |
+| `Ctrl+-` | undo |
+| `Ctrl+Y` / `Alt+Y` | yank / yank pop |
+
 ## Yazi
 
 Repo custom:
@@ -402,6 +440,10 @@ Defaults worth remembering:
 
 - local repo config under `fish/`, `helix/`, `yazi/`, `lazygit/`, `ghostty/`
 - local runtime output from `ghostty +list-keybinds --default` and `fish -c 'bind --preset'`
+- Pi Agent local docs/runtime:
+  `pi/.pi/agent/keybindings.json`
+  `@earendil-works/pi-coding-agent/docs/keybindings.md`
+  `@earendil-works/pi-coding-agent/dist/core/keybindings.js`
 - upstream docs:
   https://fishshell.com/docs/4.0/interactive.html
   https://docs.helix-editor.com/keymap.html

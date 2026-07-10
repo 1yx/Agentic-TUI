@@ -17,7 +17,8 @@ When an Agent is instructed to perform a "One-shot Setup", it MUST execute these
 
 ### 1. Pre-flight & Core Install
 - Verify macOS (`Darwin`) and `brew`.
-- Install core toolchain: `brew install stow helix yazi lazygit fish starship uv`.
+- Install core toolchain: `brew install stow helix yazi lazygit fish starship fd uv`.
+- Install GNU toolchain: `brew install coreutils gnu-sed gawk findutils gnu-tar grep gnu-which gnu-indent gnu-getopt`.
 - Install `cmux`: `brew tap manaflow-ai/cmux && brew install --cask cmux`.
 - Install `worktrunk`: `brew install worktrunk && wt config shell install`.
 - **Fish Default**: Set Fish as default shell and ensure `brew shellenv` is in `fish/.config/fish/config.fish`.
@@ -29,17 +30,17 @@ When an Agent is instructed to perform a "One-shot Setup", it MUST execute these
 ### 3. Deployment (Forceful)
 - **Backup**: Run `bash backup_configs.sh`.
 - **Clean**: Delete any existing real directories/files (not symlinks) that conflict with Stow (see list in `AGENTS.md` §3).
-- **Stow**: Execute `stow -v --target="$HOME" ghostty helix yazi fish starship lazygit git worktrunk cmux uv claude`.
+- **Deploy**: Execute `./install.sh --apply`. The package set comes from `packages.manifest`; do not hardcode a separate stow package list.
 
 ### 4. Initialization
 - **XDG & Git**: Ensure `XDG_CONFIG_HOME` and `GIT_CONFIG_GLOBAL` are exported in `config.fish`.
 - **SpecKit Init**: Run `specify init (basename (pwd))` in the repository root.
-- **Git Identity**: If `git/.config/git/config` contains placeholders, use `git config --global` values to fill them automatically, then run `git update-index --assume-unchanged git/.config/git/config`.
+- **Git Identity**: If `git/.config/git/config` contains placeholders, use `git config --global` values to fill them automatically, then run `git update-index --skip-worktree git/.config/git/config`.
 - **Keymap**: Generate `KEYMAP.md` based on current repo configs.
 
 ### 5. Validation (Smoke Tests)
 - Run all smoke tests defined in `AGENTS.md` §5.
-- If any test fails, attempt a one-time `stow -R` (restow) before reporting the error.
+- If deployment fails due to existing real config files, re-run `bash backup_configs.sh`, clear the conflicting real paths as described in `AGENTS.md` §3, then retry `./install.sh --apply` once before reporting the error.
 
 ### 6. Completion
 - Notify the user via `cmux notify` (if available) or standard output: 
