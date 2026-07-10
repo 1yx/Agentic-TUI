@@ -4,10 +4,9 @@ if test "$_os" = darwin
     fish_add_path /opt/homebrew/bin /opt/homebrew/sbin
 
     # pnpm — single source of truth for macOS (Library layout).
+    # v11+ puts global shims in $PNPM_HOME/bin, not $PNPM_HOME.
     set -gx PNPM_HOME "$HOME/Library/pnpm"
-    if not contains $PNPM_HOME $PATH
-        set -gx PATH $PNPM_HOME $PATH
-    end
+    fish_add_path "$PNPM_HOME/bin"
 
     # Google Cloud SDK
     set -gx CLOUDSDK_PYTHON "/opt/homebrew/opt/python@3.11/libexec/bin/python"
