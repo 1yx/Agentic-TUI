@@ -159,11 +159,13 @@ The agent MUST set the user's chosen `worktree-path` in the repo's `worktrunk/.c
   ```
 
   Note: Project custom keybindings are primarily in `helix/.config/helix/config.toml` and `yazi/.config/yazi/keymap.toml`. Full default keymaps for cmux, Ghostty, Helix, Yazi, LazyGit are best viewed via in-app help/tutorial/command palette.
-- **Deployment**: Execute the Stow commands from the root of this repository (dry-run first to verify):
+- **Deployment**: The package set is declared in `packages.manifest` (single source of truth — one record per package, TAB-separated: `<package> <gating-binary> <platform> <backup-paths>`). `install.sh` stows a package iff its `<platform>` matches the host OS **and** its `<gating-binary>` is installed (`command -v`). From the repo root:
   ```bash
-  stow -n -v --target="$HOME" ghostty helix yazi fish starship lazygit git worktrunk cmux uv claude gemini
-  stow -v --target="$HOME" ghostty helix yazi fish starship lazygit git worktrunk cmux uv claude gemini
+  ./install.sh            # dry-run: shows which packages would be stowed/skipped on this host
+  ./install.sh --apply    # perform the stows (per-package; a conflict is reported, not fatal)
+  ./install.sh --check    # manifest hygiene: report orphan dirs / stale entries
   ```
+  If `--apply` reports conflicts on existing real config files, run `bash backup_configs.sh` first (see Pre-check & Backup above) to back them up into `.backup/` and clear the targets, then re-run `--apply`. Note: `tmux` and `zsh` are real stow packages too (they hold `~/.tmux.conf` and `~/.zprofile`) and are included in the manifest.
 
   **Package-specific notes**:
   - **fish**: `fish_variables` is auto-modified by Fish at runtime (`set -U`). It is NOT tracked in the stow package. The fish package uses file-level symlinks for `config.fish` and `functions/*.fish`, while `fish_variables` remains a standalone local file in `~/.config/fish/`.
@@ -276,6 +278,12 @@ ghostty +show-config --default --docs >/dev/null
 
 # Stow（confirm command is available）
 stow --version
+
+# Selective stow orchestrator (manifest = source of truth for the package set)
+bash -n install.sh
+bash -n backup_configs.sh
+./install.sh --check      # manifest hygiene: orphan dirs / stale entries
+./install.sh             # dry-run: shows packages selected for this host
 
 # Helix（load project config explicitly）
 hx --config "$(pwd)/helix/.config/helix/config.toml" --health

@@ -1,0 +1,22 @@
+# Agentic-TUI stow package manifest — single source of truth.
+# Consumed by install.sh (cols 1-3) and backup_configs.sh (cols 1,4).
+# Format (TAB-separated): <package> <gating-binary> <platform> <backup-paths>
+#   platform     : any | darwin | linux   (eligible only on this OS)
+#   backup-paths : comma-separated, $HOME-relative (col read by backup_configs.sh).
+#                 macOS-only ~/Library/Application Support/... paths are handled
+#                 separately in backup_configs.sh (OS-gated), not here.
+# install.sh stows a package iff platform matches AND `command -v <gating-binary>`.
+claude	claude	any	.claude
+cmux	cmux	darwin	.config/cmux
+fish	fish	any	.config/fish
+gemini	gemini	any	.gemini
+ghostty	ghostty	any	.config/ghostty
+git	git	any	.gitconfig,.config/git
+helix	hx	any	.config/helix
+lazygit	lazygit	any	.config/lazygit
+starship	starship	any	.config/starship.toml
+tmux	tmux	any	.tmux.conf
+uv	uv	any	.config/uv
+worktrunk	wt	any	.config/worktrunk
+yazi	yazi	any	.config/yazi
+zsh	zsh	any	.zprofile
