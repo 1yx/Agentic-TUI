@@ -4,9 +4,8 @@ import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 // Commands that require explicit user confirmation before the agent runs them.
 // Matched against the full bash command string the agent passes to the bash tool.
 // Add patterns here. Mirrors the Claude Code `permissions.deny` policy
-// (git push, npm) — but as a confirm-gate, so a human can still approve one-offs.
+// (npm) — but as a confirm-gate, so a human can still approve one-offs.
 const CONFIRM_PATTERNS: RegExp[] = [
-  /\bgit\s+push\b/, // git push (any remote/flags)
   /\bnpm\b/, // bare npm — does NOT match "pnpm" (p is a word char, no boundary before n)
   /\bgh\s+repo\s+create\b[\s\S]*--push\b/, // gh repo create --push (pushes local commits)
   /\bgh\s+repo\s+sync\b/, // gh repo sync (pushes to destination repo, --force hard-resets)
