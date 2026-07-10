@@ -51,6 +51,30 @@ function devflow-upgrade --description 'Execute all pending updates'
     # ── pnpm -g ───────────────────────────────────────
     echo (set_color cyan --bold)"  pnpm -g"(set_color normal)
     if command -q pnpm
+        set -lx PNPM_HOME "$HOME/Library/pnpm"
+        if not contains -- "$PNPM_HOME/bin" $PATH
+            set -lx PATH "$PNPM_HOME/bin" $PATH
+        end
+
+        set -l pnpm_before (pnpm --version 2>/dev/null)
+
+        if command -q corepack
+            if corepack enable >/dev/null 2>&1; and corepack prepare pnpm@latest-11 --activate >/dev/null 2>&1
+                set -l pnpm_after (pnpm --version 2>/dev/null)
+                if test -n "$pnpm_before"; and test -n "$pnpm_after"; and test "$pnpm_before" != "$pnpm_after"
+                    echo "    pnpm  $pnpm_before → $pnpm_after "(set_color green)"✓"(set_color normal)
+                    set total_updated (math $total_updated + 1)
+                else
+                    echo "    pnpm  $pnpm_after "(set_color green)"✓"(set_color normal)
+                end
+            else
+                echo "    pnpm self-update "(set_color red)"✘"(set_color normal)
+                set failures (math $failures + 1)
+            end
+        else
+            echo "    "(set_color yellow)"⚠ corepack not found, skipping pnpm self-update"(set_color normal)
+        end
+
         # Snapshot outdated before upgrade
         set -l pnpm_names
         set -l pnpm_old
