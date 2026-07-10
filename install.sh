@@ -34,7 +34,7 @@ usage() {
 Usage: install.sh [--apply] [--check] [--target DIR] [--ignore-presence]
   (default)         dry-run: print selected/skipped packages, change nothing
   --apply           perform the stows (per-package; conflicts reported, not fatal)
-  --check           doctor: report orphan package dirs & stale manifest entries
+  --check           doctor: report orphan dirs & stale entries (exit 1 if any found)
   --target DIR      stow target directory (default: $HOME)
   --ignore-presence also select packages whose gating binary is absent
   -h, --help        show this help
@@ -126,6 +126,10 @@ case "$MODE" in
     done
     [ "$orphans" -eq 0 ] && echo "  (none)"
     echo "summary: $stale stale, $orphans orphan(s)"
+    # Fail (non-zero) when issues are found so smoke tests / CI / agents detect a broken manifest.
+    if [ "$stale" -gt 0 ] || [ "$orphans" -gt 0 ]; then
+      exit 1
+    fi
     ;;
 
   *)
