@@ -1,4 +1,8 @@
 # ~/.config/fish/config.fish
+# Platform-agnostic core.
+# Platform-specific PATH/env live in conf.d/10-darwin.fish & conf.d/10-linux.fish;
+# per-tool integrations live in conf.d/tools-*.fish (all auto-sourced before this file).
+# _os is set by conf.d/00-os.fish (verified: conf.d/* run before config.fish).
 
 # Disable the fish greeting.
 set -g fish_greeting
@@ -6,10 +10,7 @@ set -g fish_greeting
 # Disable mail check notices.
 set -e MAILCHECK
 
-# Homebrew
-fish_add_path /opt/homebrew/bin /opt/homebrew/sbin
-
-# Local bin
+# Local bin (cross-platform).
 fish_add_path "$HOME/.local/bin"
 
 # XDG base directories.
@@ -21,6 +22,13 @@ set -gx EDITOR hx
 set -gx GIT_EDITOR hx
 set -gx VISUAL hx
 
+# bun (cross-platform layout).
+set -gx BUN_INSTALL "$HOME/.bun"
+fish_add_path "$BUN_INSTALL/bin"
+
+# DO_NOT_TRACK
+set -gx DO_NOT_TRACK 1
+
 # Sync the shell cwd with the last directory visited in Yazi.
 function yy
     set tmp (mktemp -t "yazi-cwd.XXXXXX")
@@ -31,28 +39,7 @@ function yy
     rm -f -- "$tmp"
 end
 
-set -gx PNPM_HOME "$HOME/Library/pnpm"
-if not contains $PNPM_HOME $PATH
-    set -gx PATH $PNPM_HOME $PATH
-end
-
-# Google Cloud SDK
-set -gx CLOUDSDK_PYTHON "/opt/homebrew/opt/python@3.11/libexec/bin/python"
-if test -f "$HOME/tmp/google-cloud-sdk/path.fish.inc"
-    source "$HOME/tmp/google-cloud-sdk/path.fish.inc"
-end
-
-# mysql-client
-fish_add_path /opt/homebrew/opt/mysql-client/bin
-
-# postgresql@17
-fish_add_path /opt/homebrew/opt/postgresql@17/bin
-
-# bun
-set -gx BUN_INSTALL "$HOME/.bun"
-fish_add_path "$BUN_INSTALL/bin"
-
-# emacs
+# emacsclient helper.
 function e
     if not TERM=xterm-256color emacsclient -n -e "(+ 1 1)" >/dev/null 2>&1
         echo "Starting Emacs daemon..."
@@ -61,47 +48,11 @@ function e
     TERM=xterm-256color emacsclient -t $argv
 end
 
-# GNU tools used via g-prefixed binaries (gsed, gawk, gdate, ...) in /opt/homebrew/bin.
-# Bare names intentionally stay the BSD system defaults — no gnubin PATH override.
-
-# Obsidian
-fish_add_path /Applications/Obsidian.app/Contents/MacOS
-
-# DO_NOT_TRACK
-set -gx DO_NOT_TRACK 1
-
-# Interactive-only tooling initialization.
-if status --is-interactive
-    if command -v starship >/dev/null 2>&1
-        starship init fish | source
-    end
-
-    if command -v fnm >/dev/null 2>&1
-        fnm env --use-on-cd | source
-    end
-
-    if command -v corepack >/dev/null 2>&1
-        corepack enable
-        corepack prepare pnpm@latest --activate >/dev/null 2>&1
-    end
-
-    if command -v rbenv >/dev/null 2>&1
-        rbenv init - fish | source
-    end
-
-    if command -v zoxide >/dev/null 2>&1
-        zoxide init fish | source
-    end
-
-    if command -v uv >/dev/null 2>&1
-        set -gx UV_MANAGED_PYTHON 1
-    end
-
-    if command -v wt >/dev/null 2>&1
-        wt config shell init fish | source
-    end
-
-    # cmux workspace metadata refresh on every prompt
+# cmux workspace metadata refresh on every prompt.
+# Soft-loaded: only wraps fish_prompt when the cmux CLI is actually installed.
+# Must run AFTER all prompt-definers (e.g. starship in conf.d/), so it lives at the
+# end of config.fish (which runs after conf.d/* — verified fish 4.2.0 startup order).
+if status --is-interactive; and command -v cmux >/dev/null 2>&1
     if not functions -q __cmux_prompt_base
         functions --copy fish_prompt __cmux_prompt_base
         function fish_prompt
@@ -110,13 +61,3 @@ if status --is-interactive
         end
     end
 end
-
-# pnpm
-set -gx PNPM_HOME "/Users/dontaire/Library/pnpm"
-if not string match -q -- "$PNPM_HOME/bin" $PATH
-  set -gx PATH "$PNPM_HOME/bin" $PATH
-end
-# pnpm end
-
-# Pi
-fish_add_path "/Users/dontaire/.local/share/fnm/node-versions/v24.14.1/installation/bin"
