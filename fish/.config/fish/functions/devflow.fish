@@ -1,18 +1,22 @@
-function devflow --description 'TUI Dev OS environment update manager'
+function devflow --description 'Run a full update across all package managers'
+    # One command does the full update: index refresh (e.g. `brew update`)
+    # and installation happen in a single pass inside devflow-upgrade.
+    # The old read-only `devflow update` was removed — listing outdated
+    # packages had no follow-up action since updates are never selective.
     set -l cmd $argv[1]
-    set -l rest $argv[2..]
 
     switch "$cmd"
-        case update
-            devflow-update $rest
-        case upgrade
-            devflow-upgrade $rest
-        case '' help
-            echo "Usage: devflow <command>"
+        case upgrade update ''
+            devflow-upgrade
+        case help
+            echo "Usage: devflow [upgrade]"
             echo ""
-            echo "Environment update commands:"
-            echo "  update    Refresh indices and list outdated packages"
-            echo "  upgrade   Execute all pending updates"
+            echo "Full update across Homebrew, pnpm -g, uv tool, and pi."
+            echo "  devflow          full update"
+            echo "  devflow upgrade  same (explicit form)"
+            echo "  devflow update   alias of upgrade"
+            echo ""
+            echo "Index refresh runs silently as part of the update."
         case '*'
             echo "Unknown command: $cmd"
             echo "Run 'devflow help' for usage."

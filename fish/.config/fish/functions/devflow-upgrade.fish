@@ -9,7 +9,7 @@ function devflow-upgrade --description 'Execute all pending updates'
     echo (set_color cyan --bold)"  Homebrew"(set_color normal)
     if command -q brew
         # Snapshot outdated before upgrade (greedy to match upgrade behavior)
-        brew update >/dev/null 2>&1
+        brew update >/dev/null
         set -l brew_names
         set -l brew_old
         set -l brew_new
@@ -23,7 +23,13 @@ function devflow-upgrade --description 'Execute all pending updates'
         end
         set -l n (count $brew_names)
 
-        if brew upgrade >/dev/null 2>&1; and brew upgrade --greedy >/dev/null 2>&1; and brew cleanup >/dev/null 2>&1
+        # Keep stderr (brew errors) visible; only swallow stdout so our
+        # formatted summary below stays clean. A long cask download would
+        # otherwise look frozen with everything sent to /dev/null.
+        if test $n -gt 0
+            echo "    "(set_color brblack)"upgrading $n package(s)… (this can take a while for large casks)"(set_color normal)
+        end
+        if brew upgrade >/dev/null; and brew upgrade --greedy >/dev/null; and brew cleanup >/dev/null
             if test $n -gt 0
                 for i in (seq $n)
                     echo "    $brew_names[$i]  $brew_old[$i] → $brew_new[$i] "(set_color green)"✓"(set_color normal)
@@ -214,6 +220,22 @@ function devflow-upgrade --description 'Execute all pending updates'
         end
     else
         echo "  "(set_color yellow)"⚠ uv not found, skipping"(set_color normal)
+    end
+    echo ""
+
+    # ── pi (self + packages) ─────────────────────────
+    echo (set_color cyan --bold)"  pi"(set_color normal)
+    if command -q pi
+        # Let pi stream its own "Updating…" progress — swallowing it
+        # makes large updates look frozen (same trap as Homebrew).
+        if pi update --all
+            echo "  "(set_color green)"✓ pi + packages updated"(set_color normal)
+        else
+            echo "  "(set_color red)"✘ update failed"(set_color normal)
+            set failures (math $failures + 1)
+        end
+    else
+        echo "  "(set_color yellow)"⚠ pi not found, skipping"(set_color normal)
     end
     echo ""
 
