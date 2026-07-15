@@ -3,13 +3,19 @@ function devflow-upgrade --description 'Execute all pending updates'
     set -l failures 0
     set -l total_updated 0
 
+    # --verbose: route swallowed output to the terminal (sink=/dev/stdout
+    # instead of /dev/null) and print parsed state via __devflow_log (stderr).
+    set -l o /dev/null
+    set -q __DEVFLOW_VERBOSE; and set o /dev/stdout
+    __devflow_log "verbose mode — sink=$o"
+
     echo ""
 
     # ── Homebrew ──────────────────────────────────────
     echo (set_color cyan --bold)"  Homebrew"(set_color normal)
     if command -q brew
         # Snapshot outdated before upgrade (greedy to match upgrade behavior)
-        brew update >/dev/null
+        brew update >$o
         set -l brew_names
         set -l brew_old
         set -l brew_new
@@ -22,6 +28,7 @@ function devflow-upgrade --description 'Execute all pending updates'
             end
         end
         set -l n (count $brew_names)
+        __devflow_log "brew outdated ($n): $brew_names"
 
         # Keep stderr (brew errors) visible; only swallow stdout so our
         # formatted summary below stays clean. A long cask download would
@@ -29,7 +36,7 @@ function devflow-upgrade --description 'Execute all pending updates'
         if test $n -gt 0
             echo "    "(set_color brblack)"upgrading $n package(s)… (this can take a while for large casks)"(set_color normal)
         end
-        if brew upgrade >/dev/null; and brew upgrade --greedy >/dev/null; and brew cleanup >/dev/null
+        if brew upgrade >$o; and brew upgrade --greedy >$o; and brew cleanup >$o
             if test $n -gt 0
                 for i in (seq $n)
                     echo "    $brew_names[$i]  $brew_old[$i] → $brew_new[$i] "(set_color green)"✓"(set_color normal)
@@ -57,9 +64,10 @@ function devflow-upgrade --description 'Execute all pending updates'
         end
 
         set -l pnpm_before (pnpm --version 2>/dev/null)
+        __devflow_log "pnpm before: $pnpm_before"
 
         if command -q corepack
-            if corepack enable >/dev/null 2>&1; and corepack prepare pnpm@latest-11 --activate >/dev/null 2>&1
+            if corepack enable >$o 2>&1; and corepack prepare pnpm@latest-11 --activate >$o 2>&1
                 set -l pnpm_after (pnpm --version 2>/dev/null)
                 if test -n "$pnpm_before"; and test -n "$pnpm_after"; and test "$pnpm_before" != "$pnpm_after"
                     echo "    pnpm  $pnpm_before → $pnpm_after "(set_color green)"✓"(set_color normal)
@@ -75,21 +83,33 @@ function devflow-upgrade --description 'Execute all pending updates'
             echo "    "(set_color yellow)"⚠ corepack not found, skipping pnpm self-update"(set_color normal)
         end
 
-        # Snapshot outdated before upgrade
+        # Snapshot outdated before upgrade. pnpm 11's default table output is
+        # Unicode box-drawing; --format json is stable and parses cleanly.
         set -l pnpm_names
         set -l pnpm_old
         set -l pnpm_new
-        for line in (pnpm outdated -g 2>/dev/null | tail -n +2)
-            set -l parts (string match -r '(\S+)\s+(\S+)\s+\S+\s+(\S+)' $line 2>/dev/null)
-            if test (count $parts) -ge 4
-                set -a pnpm_names $parts[2]
-                set -a pnpm_old $parts[3]
-                set -a pnpm_new $parts[4]
+        for entry in (pnpm outdated -g --format json 2>/dev/null | jq -r 'to_entries[] | "\(.key)\t\(.value.current)\t\(.value.latest)"' 2>/dev/null)
+            set -l parts (string split \t $entry)
+            if test (count $parts) -eq 3
+                set -a pnpm_names $parts[1]
+                set -a pnpm_old $parts[2]
+                set -a pnpm_new $parts[3]
             end
         end
         set -l n (count $pnpm_names)
+        __devflow_log "pnpm -g outdated ($n): $pnpm_names"
 
-        if pnpm update -g >/dev/null 2>&1
+        # Keep stderr (download progress) visible — swallowing it makes a
+        # large global update look frozen (same trap as Homebrew).
+        # --config.dangerouslyAllowAllBuilds=true: pnpm 10+ blocks on stdin
+        # waiting for the "Choose which packages to build" approval (e.g.
+        # sharp's postinstall) on every updated global package — this is what
+        # made devflow appear to hang at pnpm. Auto-approve, since these are
+        # already user-installed globals; verbose still shows the build output.
+        if test $n -gt 0
+            echo "    "(set_color brblack)"updating $n package(s)…"(set_color normal)
+        end
+        if pnpm update -g --config.dangerouslyAllowAllBuilds=true >$o
             if test $n -gt 0
                 for i in (seq $n)
                     echo "    $pnpm_names[$i]  $pnpm_old[$i] → $pnpm_new[$i] "(set_color green)"✓"(set_color normal)
@@ -105,7 +125,7 @@ function devflow-upgrade --description 'Execute all pending updates'
                     end
                 end
                 if test "$openspec_updated" = true
-                    openspec update >/dev/null 2>&1
+                    openspec update >$o 2>&1
                     if test -d .claude/commands/opsx
                         set -l git_root (git rev-parse --show-toplevel 2>/dev/null)
                         if test -n "$git_root"
@@ -132,6 +152,7 @@ function devflow-upgrade --description 'Execute all pending updates'
     # ── uv tool (PyPI + Git combined) ─────────────────
     echo (set_color cyan --bold)"  uv tool"(set_color normal)
     if command -q uv
+        __devflow_log "raw uv tool list: "(uv tool list --show-version-specifiers 2>/dev/null | string join "; ")
         # Identify git tool names
         set -l git_tool_names
         for line in (uv tool list --show-version-specifiers 2>/dev/null)
@@ -140,6 +161,7 @@ function devflow-upgrade --description 'Execute all pending updates'
                 set -a git_tool_names $gm[2]
             end
         end
+        __devflow_log "uv git tools: $git_tool_names"
 
         # Collect PyPI outdated
         set -l pypi_names
@@ -163,6 +185,7 @@ function devflow-upgrade --description 'Execute all pending updates'
             end
         end
 
+        __devflow_log "uv pypi outdated: $pypi_names → $pypi_new"
         # Collect Git outdated via GitHub API
         set -l git_names
         set -l git_old
@@ -192,6 +215,7 @@ function devflow-upgrade --description 'Execute all pending updates'
             end
         end
 
+        __devflow_log "uv git outdated: $git_names → $git_new"
         # Execute upgrades and collect results
         set -l uv_res_name
         set -l uv_res_old
@@ -201,23 +225,30 @@ function devflow-upgrade --description 'Execute all pending updates'
         # PyPI upgrade
         set -l pypi_ok true
         if test (count $pypi_names) -gt 0
-            uv tool upgrade --all >/dev/null 2>&1; or set pypi_ok false
+            uv tool upgrade --all >$o 2>&1; or set pypi_ok false
         end
-        for i in (seq (count $pypi_names))
-            set -a uv_res_name $pypi_names[$i]
-            set -a uv_res_old $pypi_old[$i]
-            set -a uv_res_new $pypi_new[$i]
+        # Iterate the list directly — BSD `seq 0` prints "1 0", so an empty
+        # list would otherwise index 0 and abort. idx stays in sync with the
+        # parallel old/new arrays.
+        set -l idx 1
+        for name in $pypi_names
+            set -a uv_res_name $name
+            set -a uv_res_old $pypi_old[$idx]
+            set -a uv_res_new $pypi_new[$idx]
             set -a uv_res_ok $pypi_ok
+            set idx (math $idx + 1)
         end
 
-        # Git upgrade (individually)
-        for i in (seq (count $git_names))
+        # Git upgrade (individually) — same empty-list-safe pattern.
+        set -l idx 1
+        for name in $git_names
             set -l ok true
-            uv tool install --from "git+$git_urls[$i]@$git_new[$i]" --force $git_names[$i] >/dev/null 2>&1; or set ok false
-            set -a uv_res_name $git_names[$i]
-            set -a uv_res_old $git_old[$i]
-            set -a uv_res_new $git_new[$i]
+            uv tool install --from "git+$git_urls[$idx]@$git_new[$idx]" --force $name >$o 2>&1; or set ok false
+            set -a uv_res_name $name
+            set -a uv_res_old $git_old[$idx]
+            set -a uv_res_new $git_new[$idx]
             set -a uv_res_ok $ok
+            set idx (math $idx + 1)
         end
 
         # Display combined results
