@@ -11,7 +11,7 @@ cmux	cmux	darwin	.config/cmux
 fish	fish	any	.config/fish
 gemini	gemini	any	.gemini
 ghostty	ghostty	any	.config/ghostty
-git	git	any	.gitconfig,.config/git
+git	git	any	.config/git
 helix	hx	any	.config/helix
 lazygit	lazygit	any	.config/lazygit
 starship	starship	any	.config/starship.toml
