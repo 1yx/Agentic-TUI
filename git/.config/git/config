@@ -4,9 +4,31 @@
     editor = hx
 
 [user]
-    # Set these before stowing this package.
+    # Set these before stowing this package. Real values live in
+    # ~/.config/git/config.local (untracked), included below.
     name = YOUR_NAME
     email = your@email.com
 
 [init]
     defaultBranch = main
+[alias]
+	lg = log --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr)%Creset' --all
+	st = status -sb
+	br = branch -vv
+	cm = commit -m
+	outgoing = log @{u}..HEAD
+	incoming = log HEAD..@{u}
+	wdiff = diff -w --word-diff=color --ignore-space-at-eol
+[push]
+	default = current
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[url "https://"]
+	insteadOf = git://
+
+# Personal overrides (identity, signing keys, gpg paths) — not tracked.
+[include]
+	path = ~/.config/git/config.local
