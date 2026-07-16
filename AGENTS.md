@@ -186,10 +186,31 @@ set -gx GIT_CONFIG_GLOBAL ~/.config/git/config  # Git reads this
 Claude hardcodes `~/.claude/` and cannot be changed — the only exception.
 
 #### Git Identity Setup
-The repo tracks a placeholder template at `git/.config/git/config` (`YOUR_NAME` / `your@email.com`). If these values are still placeholders, the agent **MUST** guide the user through:
-1. Edit `git/.config/git/config` with real name and email
-2. `stow -R -v --target="$HOME" git`
-3. `git update-index --skip-worktree git/.config/git/config` (prevents personal info from being committed)
+The repo uses git's native `[include]` to keep personal identity **out** of the committed config — no `skip-worktree` hack:
+
+- `git/.config/git/config` (**committed, generic**): holds `[core]`, `[init]`, `[alias]`, `[push]`, `[filter "lfs"]`, `[url]`, a placeholder `[user]` (`YOUR_NAME` / `your@email.com`), and an `[include]` directive at the end.
+- `~/.config/git/config.local` (**untracked, outside the repo**): holds the real `[user]` name/email/signingkey and `[gpg]` paths. Git merges it via `[include] path = ~/.config/git/config.local`, overriding the placeholder. Because it lives at `~/.config/git/` (outside the repo), it is never committed.
+
+Note: `fish/.config/fish/config.fish` exports `GIT_CONFIG_GLOBAL=~/.config/git/config`, so git reads **only** that file as global — which is why personal values must go in `config.local` (pulled in via include), not in a separate `~/.gitconfig` (which git ignores here).
+
+If the placeholder is still in effect (`git config --get user.name` returns `YOUR_NAME`), the agent **MUST** guide the user to create the local override:
+1. Create `~/.config/git/config.local` with the real identity (gpg block optional):
+   ```ini
+   [user]
+       name = <real name>
+       email = <real email>
+       signingkey = ~/.ssh/id_ed25519.pub
+   [gpg]
+       format = ssh
+   [commit]
+       gpgsign = true
+   [gpg "ssh"]
+       allowedSignersFile = ~/.ssh/allowed_signers
+   ```
+2. Ensure the git package is stowed (`stow -R -v --target="$HOME" git`) so `~/.config/git/config` resolves to the committed generic file.
+3. Verify: `git config --get user.name` returns the real name (from `config.local`), not the placeholder.
+
+`config.local` is machine-local. `backup_configs.sh` backs up `~/.config/git/` (so it lands in the gitignored `.backup/`), but a fresh clone will not have it — recreate it on each machine.
 
 #### Claude Code Configuration
 The agent **MUST** ask the user to choose one of the following provider switching methods:
@@ -335,7 +356,7 @@ Setup is complete. The agent **MUST** now guide the user to:
 3. Start a Claude session inside cmux using `dev *` or `cld *` or `claude`.
 4. Ask Claude about any tool's shortcuts, keybindings, or configuration details (e.g. "show me helix keymap", "what does ⌘D do in cmux", "explain the dev workflow").
 5. Request modifications to fit the user's own preferences — Claude will edit the stow packages and restow as needed.
-6. Before pushing to a remote repository, remind the user to protect sensitive data (API keys, tokens, secrets). Use `git update-index --skip-worktree <file>` on any file containing real credentials to prevent accidental commits.
+6. Before pushing to a remote repository, remind the user to protect sensitive data (API keys, tokens, secrets). Prefer keeping secrets **outside the repo** or in a gitignored file (see how git identity uses `~/.config/git/config.local` in Git Identity Setup above). For secrets that must live in a tracked file, fall back to `git update-index --skip-worktree <file>` to prevent accidental commits.
 
 #### Keymap & Shortcut Viewing
 Remind the user that `KEYMAP.md` in the project root is the single-page cheatsheet for all tool keybindings and custom overrides. If the user has any questions about shortcuts or keybindings (e.g. "what does ⌘D do in cmux", "show me helix keymap"), they can ask the agent at any time.
