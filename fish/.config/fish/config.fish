@@ -15,12 +15,10 @@ fish_add_path "$HOME/.local/bin"
 
 # XDG base directories.
 set -gx XDG_CONFIG_HOME ~/.config
-set -gx GIT_CONFIG_GLOBAL ~/.config/git/config
 
-# Default editors.
-set -gx EDITOR hx
-set -gx GIT_EDITOR hx
-set -gx VISUAL hx
+# Default editors (emacsclient for instant open).
+set -gx EDITOR "emacsclient -t"
+set -gx VISUAL "emacsclient -t"
 
 # bun (cross-platform layout).
 set -gx BUN_INSTALL "$HOME/.bun"
@@ -61,3 +59,10 @@ if status --is-interactive; and command -v cmux >/dev/null 2>&1
         end
     end
 end
+
+# pnpm
+set -gx PNPM_HOME "/home/lyx/.local/share/pnpm"
+if not string match -q -- "$PNPM_HOME/bin" $PATH
+  set -gx PATH "$PNPM_HOME/bin" $PATH
+end
+# pnpm end
