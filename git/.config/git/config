@@ -1,13 +1,18 @@
-# ~/.config/git/config
+# ~/.config/git/config — generic/shared, committed & stow-managed.
+#
+# Git reads global config in this order (later files win per-key):
+#   1. /etc/gitconfig        (system)
+#   2. ~/.config/git/config  (XDG global  ← this file, via stow)
+#   3. ~/.gitconfig          (HOME global ← personal / sensitive)
+#   4. .git/config           (repo local)
+#
+# Personal identity (name/email), signing keys, gpg paths, proxy, and your
+# preferred editor belong in ~/.gitconfig — a real file OUTSIDE the repo, never
+# committed. It overrides anything in this file.
+# See AGENTS.md §4 "Git Identity Setup".
 
 [core]
-    editor = hx
-
-[user]
-    # Set these before stowing this package. Real values live in
-    # ~/.config/git/config.local (untracked), included below.
-    name = YOUR_NAME
-    email = your@email.com
+    editor = emacsclient -t
 
 [init]
     defaultBranch = main
@@ -28,7 +33,3 @@
 	required = true
 [url "https://"]
 	insteadOf = git://
-
-# Personal overrides (identity, signing keys, gpg paths) — not tracked.
-[include]
-	path = ~/.config/git/config.local

@@ -33,9 +33,9 @@ When an Agent is instructed to perform a "One-shot Setup", it MUST execute these
 - **Deploy**: Execute `./install.sh --apply`. The package set comes from `packages.manifest`; do not hardcode a separate stow package list.
 
 ### 4. Initialization
-- **XDG & Git**: Ensure `XDG_CONFIG_HOME` and `GIT_CONFIG_GLOBAL` are exported in `config.fish`.
+- **XDG & Git**: Ensure `XDG_CONFIG_HOME` is exported in `config.fish`. Do **not** set `GIT_CONFIG_GLOBAL` — it would make git ignore `~/.gitconfig` (where personal identity lives). Git reads `~/.config/git/config` natively once stowed.
 - **SpecKit Init**: Run `specify init (basename (pwd))` in the repository root.
-- **Git Identity**: If `git/.config/git/config` contains placeholders, use `git config --global` values to fill them automatically, then run `git update-index --skip-worktree git/.config/git/config`.
+- **Git Identity**: Write real identity (name/email/signingkey/proxy/editor) into `~/.gitconfig` — it overrides the stowed `~/.config/git/config` per-key (see `AGENTS.md` §4 load order). No `skip-worktree` needed; `~/.gitconfig` lives outside the repo.
 - **Keymap**: Generate `KEYMAP.md` based on current repo configs.
 
 ### 5. Validation (Smoke Tests)

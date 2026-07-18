@@ -178,39 +178,54 @@ The agent MUST set the user's chosen `worktree-path` in the repo's `worktrunk/.c
 ### 4. Post-setup & Initialization
 
 #### XDG Compatibility
-LazyGit and Git on macOS do not use `~/.config/` by default. Fish environment variables (already in `fish/.config/fish/config.fish`) handle this:
+LazyGit on macOS does not use `~/.config/` by default. Fish sets `XDG_CONFIG_HOME` (already in `fish/.config/fish/config.fish`) so LazyGit picks it up:
 ```fish
 set -gx XDG_CONFIG_HOME ~/.config           # LazyGit reads this
-set -gx GIT_CONFIG_GLOBAL ~/.config/git/config  # Git reads this
 ```
+Git needs **no** override: once `~/.config/git/config` is stowed, git reads it natively as the XDG global config (full load order in Git Identity Setup below). `GIT_CONFIG_GLOBAL` is deliberately **not** set — setting it would make git ignore `~/.gitconfig`, which is where personal identity lives.
 Claude hardcodes `~/.claude/` and cannot be changed — the only exception.
 
 #### Git Identity Setup
-The repo uses git's native `[include]` to keep personal identity **out** of the committed config — no `skip-worktree` hack:
+Personal identity and other sensitive settings are kept **out** of the committed config by relying on git's native multi-file load order — no `skip-worktree` hack, no `[include]` indirection.
 
-- `git/.config/git/config` (**committed, generic**): holds `[core]`, `[init]`, `[alias]`, `[push]`, `[filter "lfs"]`, `[url]`, a placeholder `[user]` (`YOUR_NAME` / `your@email.com`), and an `[include]` directive at the end.
-- `~/.config/git/config.local` (**untracked, outside the repo**): holds the real `[user]` name/email/signingkey and `[gpg]` paths. Git merges it via `[include] path = ~/.config/git/config.local`, overriding the placeholder. Because it lives at `~/.config/git/` (outside the repo), it is never committed.
+**Load order** (git reads each in turn; for any given key, the **last** file wins):
 
-Note: `fish/.config/fish/config.fish` exports `GIT_CONFIG_GLOBAL=~/.config/git/config`, so git reads **only** that file as global — which is why personal values must go in `config.local` (pulled in via include), not in a separate `~/.gitconfig` (which git ignores here).
+| # | File | Role | Tracked? |
+|---|------|------|----------|
+| 1 | `/etc/gitconfig` | system | — |
+| 2 | `~/.config/git/config` | XDG global — stow-managed → repo `git/.config/git/config`. Generic only: `[alias]`, `[push]`, `[init]`, `[filter "lfs"]`, `[url]`, default `core.editor` | ✅ committed |
+| 3 | `~/.gitconfig` | HOME global — **personal / sensitive**: `[user]` name/email/signingkey, `[gpg]`/`[commit]`/`[tag]` signing, `[http]`/`[https]` proxy, your real `core.editor` | ❌ real file at `$HOME`, outside the repo, structurally impossible to commit |
+| 4 | `.git/config` | per-repo local | per repo |
 
-If the placeholder is still in effect (`git config --get user.name` returns `YOUR_NAME`), the agent **MUST** guide the user to create the local override:
-1. Create `~/.config/git/config.local` with the real identity (gpg block optional):
+Because `~/.gitconfig` (level 3) is read **after** the stowed `~/.config/git/config` (level 2), every personal key overrides the generic default. Example: the repo ships a generic `core.editor`; `~/.gitconfig` can override it with your own, and your value wins.
+
+> **Why not `GIT_CONFIG_GLOBAL`?** Setting it makes git read **only** that one file and **ignore both** `~/.gitconfig` and `~/.config/git/config`. It is therefore **not** exported in `config.fish` — git's native 4-level order is used instead.
+
+If `git config --get user.name` is empty or wrong, the agent **MUST** guide the user to populate `~/.gitconfig` (never a repo file):
+1. Create/edit `~/.gitconfig` with the real identity (gpg block optional):
    ```ini
    [user]
-       name = <real name>
-       email = <real email>
-       signingkey = ~/.ssh/id_ed25519.pub
+     name = <real name>
+     email = <real email>
+     signingkey = ~/.ssh/id_ed25519.pub
+   [core]
+     editor = emacsclient -t
    [gpg]
-       format = ssh
+     format = ssh
    [commit]
-       gpgsign = true
+     gpgsign = true
    [gpg "ssh"]
-       allowedSignersFile = ~/.ssh/allowed_signers
+     allowedSignersFile = ~/.ssh/allowed_signers
    ```
 2. Ensure the git package is stowed (`stow -R -v --target="$HOME" git`) so `~/.config/git/config` resolves to the committed generic file.
-3. Verify: `git config --get user.name` returns the real name (from `config.local`), not the placeholder.
+3. Verify both files are read and the override applies:
+   ```bash
+   git config --list --show-origin | rg 'user\.|core\.editor'   # source file per key
+   git config --get user.name        # real name (from ~/.gitconfig)
+   git config --get core.editor      # your editor (overriding repo's hx)
+   ```
 
-`config.local` is machine-local. `backup_configs.sh` backs up `~/.config/git/` (so it lands in the gitignored `.backup/`), but a fresh clone will not have it — recreate it on each machine.
+`~/.gitconfig` is machine-local. `backup_configs.sh` does **not** back it up (the git package's manifest entry is `.config/git`, not `~/.gitconfig`) — back it up yourself, or just recreate it on each machine.
 
 #### Claude Code Configuration
 The agent **MUST** ask the user to choose one of the following provider switching methods:
@@ -356,7 +371,7 @@ Setup is complete. The agent **MUST** now guide the user to:
 3. Start a Claude session inside cmux using `dev *` or `cld *` or `claude`.
 4. Ask Claude about any tool's shortcuts, keybindings, or configuration details (e.g. "show me helix keymap", "what does ⌘D do in cmux", "explain the dev workflow").
 5. Request modifications to fit the user's own preferences — Claude will edit the stow packages and restow as needed.
-6. Before pushing to a remote repository, remind the user to protect sensitive data (API keys, tokens, secrets). Prefer keeping secrets **outside the repo** or in a gitignored file (see how git identity uses `~/.config/git/config.local` in Git Identity Setup above). For secrets that must live in a tracked file, fall back to `git update-index --skip-worktree <file>` to prevent accidental commits.
+6. Before pushing to a remote repository, remind the user to protect sensitive data (API keys, tokens, secrets). Prefer keeping secrets **outside the repo** (see how git identity lives in `~/.gitconfig`, a real file at `$HOME` that cannot be committed, in Git Identity Setup above). For secrets that must live in a tracked file, fall back to `git update-index --skip-worktree <file>` to prevent accidental commits.
 
 #### Keymap & Shortcut Viewing
 Remind the user that `KEYMAP.md` in the project root is the single-page cheatsheet for all tool keybindings and custom overrides. If the user has any questions about shortcuts or keybindings (e.g. "what does ⌘D do in cmux", "show me helix keymap"), they can ask the agent at any time.
