@@ -17,7 +17,7 @@
 [init]
     defaultBranch = main
 [alias]
-	lg = log --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr)%Creset' --all --exclude=refs/pi-checkpoints/* --exclude=refs/cmux/*
+	lg = log --graph --pretty=format:'%C(auto)%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr)%Creset' --exclude=refs/pi-checkpoints/* --exclude=refs/cmux/last-turn/* --all
 	st = status -sb
 	br = branch -vv
 	cm = commit -m
