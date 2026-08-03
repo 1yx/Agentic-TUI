@@ -61,7 +61,12 @@ if status --is-interactive; and command -v cmux >/dev/null 2>&1
 end
 
 # pnpm
-set -gx PNPM_HOME "/home/lyx/.local/share/pnpm"
+switch (uname)
+  case Darwin
+    set -gx PNPM_HOME "$HOME/Library/pnpm"
+  case Linux
+    set -gx PNPM_HOME "$HOME/.local/share/pnpm"
+end
 if not string match -q -- "$PNPM_HOME/bin" $PATH
   set -gx PATH "$PNPM_HOME/bin" $PATH
 end
