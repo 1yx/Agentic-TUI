@@ -1,0 +1,19 @@
+# Codex profile — DeepSeek V4 Flash
+#
+# Loaded on top of ~/.codex/config.toml when you run:
+#   codex --profile deepseek
+#
+# Only the keys that differ from the GPT default live here. The DeepSeek API key
+# is NOT stored here — it lives in the (untracked) base config.toml under
+# [model_providers.deepseek].experimental_bearer_token, so this file is safe to
+# commit.
+#
+# Why these keys: `--model` alone can't switch the provider, so a profile is the
+# clean one-command switch. Auth is intentionally NOT set here — DeepSeek
+# authenticates via the provider's experimental_bearer_token in the base
+# config.toml, which is independent of Codex's global login state. Setting
+# preferred_auth_method / forced_login_method here would force a logout of the
+# ChatGPT subscription (the "Logging out" error), so we leave global auth alone.
+model = "deepseek-v4-flash"
+model_provider = "deepseek"
+model_reasoning_effort = "high"

@@ -21,3 +21,4 @@ worktrunk	wt	any	.config/worktrunk
 yazi	yazi	any	.config/yazi
 zsh	zsh	any	.zprofile
 pi	pi	any	.pi/agent/keybindings.json
+codex	codex	any	.codex/models.json,.codex/deepseek.config.toml
